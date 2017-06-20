@@ -1,0 +1,272 @@
+---
+title: "Durée de résidence des étrangers"
+author: "Duc-Quang Nguyen | swissinfo.ch"
+date: " 2017"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: simplex
+---
+
+La Suisse est l'un des pays qui compte la plus forte proportion d'étrangers sur son sol. Le 40% de ces étrangers sont pourtant né en Suisse ou y résident depuis plus de 20 ans. Avec l'immigration figurant au centre des débats politiques, profils de ces étrangers installés de longue date en Suisse. 
+
+Un tiers de la population suisse est issue de la migration. Par personne issue de la migration, on entend qu'il ou elle a vécu l'immigration ou que les parents de cette personne ont émigré en Suisse. 
+
+En considérant uniquement la nationalité des résidants permanents en Suisse, un quart de la population ne possède pas la nationalité du pays. Une proportion parmi les plus élevées au monde. Mais le 40% de ces étrangers sont nés en Suisse ou y résident depuis plus de 20 ans, le graphique ci-dessous présente la durée de résidence des principales nationalités étrangères en Suisse. 
+
+Pouquoi s'intéresser à cette frange de la population en particulier plutôt qu'à la population issue de la migration au sens large? Simplement parce que seuls ces étrangers sont concernés par différentes initiatives populaires acceptées par le peuple. Comme les inititives visant à limiter l'immigration ou à expulser les ressortissants non nationaux ayant commis des délits pénaux.
+
+Les nationalités italienne, turque et de l'ex-Yougoslavie (Croatie, Bosnie-et-Herzégovine, Serbie, Macédoine et Kosovo) sont celles en tête de liste des étrangers nés ou établis en Suisse depuis plus de 20 ans. À lʼopposé, les Allemands, Français, Anglais et Polonais résident en Suisse généralement pour un laps de temps plus court et relativement peu de ressortissants de ces deux pays sont nés en Suisse. 
+
+A relever que l'acquisition de la nationalité suisse ferait bien sûr disparaître ces étrangers de ces chiffres. Si le peuple suisse a accepté cette année une initiative populaire visant à faciliter la naturalisation des étrangers de 3ème génération, le processus de naturalisation y demeure parmi les plus restrictifs d'Europe. Contrairement à ce qui se passe dans les pays d’immigration traditionnels tels que les États-Unis ou l’Australie, un enfant né en Suisse n’acquiert pas automatiquement la nationalité suisse.
+
+Le taux de naturalisation, qui compare le nombre d'acquisitions de nationalité à celui des résidents étrangers permanents, est inférieur à la moyenne européenne. En 2015, ce taux s'élevait à 2,1% en Suisse. 
+
+La raison à ce relativement faible taux de naturalisations est simple, plus de 80% des non-nationaux résidant en Suisse proviennent d'Europe. Les migrants originaires des États membres de l’UE ne séjournent pas pour une longue période en Suisse. C’est la raison pour laquelle le passeport rouge à croix blanche les intéresse moins, puisqu’ils bénéficient pour l'instant encore de la libre circulation en tant que citoyens européens. Les graphiques ci-dessous illustrent la prépondérance de l'immigration européenne vers la Suisse, depuis 165 ans à de nos jours.  
+
+
+
+
+ 
+
+en considérant le processuss de naturalisation helvétique 
+
+
+
+Un cinquième des étrangers sont nés en Suisse
+
+
+
+http://blog.nccr-onthemove.ch/la-suisse-dernier-bastion-du-droit-du-sang-dans-une-europe-convertie-au-droit-du-sol/
+
+https://www.swissinfo.ch/fre/droits-civiques-et-naturalisation/28978514
+
+https://www.swissinfo.ch/fre/analyse-en-graphiques_naturalisation-facilitée--la-cinquième-fois-aura-été-la-bonne/42959734
+
+https://www.swissinfo.ch/fre/a-l-épreuve-des-faits_non--la-suisse-n-est-pas--la-championne-des-naturalisations-/42899314
+
+
+
+
+
+
+
+
+# Swiss population by age
+
+##### https://www.pxweb.bfs.admin.ch/Selection.aspx?px_language=fr&px_db=px-x-0103010000_113&px_tableid=px-x-0103010000_113%5Cpx-x-0103010000_113.px&px_type=PX
+##### https://www.pxweb.bfs.admin.ch/Selection.aspx?px_language=fr&px_db=px-x-0103010000_204&px_tableid=px-x-0103010000_204%5Cpx-x-0103010000_204.px&px_type=PX
+
+```{r setup, include=FALSE}
+exploreData <- F
+teaserifiy <- T
+
+data.file <- "data/STATPOP_2015_Tab_je_01_02_01_01_Nationalité.csv"
+translation.file <- "input/Durée de résidence des étrangers - Sheet1.csv"
+
+library(tidyverse)
+library(scales)
+library(magrittr)
+library(countrycode)
+library(swiMap)
+library(swiTheme)
+library(viridis)
+```
+
+```{r data load & wrangle}
+txt <- loadTranslation(translation.file)
+
+data.read <- read_csv(data.file)
+
+coln <- data.read$X1
+datam <- data.read %>% select(-X1) %>% as.matrix()
+rownames(datam) <- coln
+
+# Ensure total is really the total...
+stopifnot(colSums(datam[-c(1,3),]) == datam[1,])
+# Ensure total "né à l'étranger"" is correct
+stopifnot(colSums(datam[4:12,]) == datam[3,])
+
+# Discard the total rows
+datam <- datam[-c(1,3),-1] 
+
+data.all <- datam %>% as.tibble()
+row.names(data.all) <- rownames(datam)
+
+# Make data long
+data <- tibble::rownames_to_column(data.all, "type")
+data %<>% gather(country, value, -type) 
+
+typel <- c("né en Suisse", "> 1 an", "1-4 ans", "5-9 ans", "10-14 ans", 
+           "15-19 ans", "20-24 ans", "25-29 ans", "+30 ans", "Sans indication")
+
+data %<>% mutate(type = case_when(
+  .$type == "Né en Suisse" ~ typel[1],
+  .$type == "Moins d'un an" ~ typel[2],
+  .$type == "1-4 ans" ~ typel[3],
+  .$type == "5-9 ans" ~ typel[4],
+  .$type == "10-14 ans" ~ typel[5],
+  .$type == "15-19 ans" ~ typel[6],
+  .$type == "20-24 ans" ~ typel[7],  
+  .$type == "25-29 ans" ~ typel[8],
+  .$type == "30 ans ou plus" ~ typel[9],
+  .$type == "Sans indication"~ typel[10]  
+  )) %>% 
+  mutate(type = factor(type, levels = typel[c(2:9, 1, 10)], ordered = T))
+
+```
+
+```{r explore data, include=T}
+nat.sub <- colSums(data.all) %>% sort(decreasing = T) %>% head(20)
+ dd <- data %>% filter(country %in% names(nat.sub)[-1]) %>%
+    group_by(country) %>% mutate(tot = sum(value)) %>% 
+    ungroup() %>%
+    mutate(country = reorder(country, -tot)) %>%
+    group_by(country, type) %>%
+    mutate(pc = (value/tot)* 100) %>% ungroup()
+ 
+
+ee <- data %>% filter(country != "Suisse") %>% 
+    group_by(type) %>% summarise(value = sum(value)) %>% ungroup() %>%
+  mutate(tot = sum(value), pc = (value/tot)* 100) 
+ee %>% knitr::kable()
+
+dd %>% group_by(country) %>% summarise(twenty = sum(pc[which(type %in% c("né en Suisse", "20-24 ans", "25-29 ans", "+30 ans"))])) %>% arrange(desc(twenty))
+ 
+if(exploreData) {
+  dd %>%  ggplot(aes(x = type, y = value)) +
+    geom_bar(aes(fill = type), stat = "identity") + 
+    facet_wrap(~country, scales = "free_y", ncol = 3) + 
+    swi_theme() + scale_fill_viridis(discrete = T)
+  
+  
+  dd %>%  ggplot(aes(x = type, y = pc)) +
+    geom_bar(aes(fill = type), stat = "identity") + 
+    facet_wrap(~country, ncol = 3) + 
+    swi_theme() + scale_fill_viridis(discrete = T)  
+}
+
+
+```
+
+```{r interactive graphic}
+library(htmltools)
+library(swiRcharts)
+library(highcharter)
+
+country.sub <- names(nat.sub)[-1] %>% head(15)
+
+chart.height <- 220
+bg.colour <-  "#f2f2f2" 
+y.max <- dd %>% filter(country %in% country.sub) %>% select(pc) %>% max()
+
+typel
+tmp.colors <- c((grDevices::colorRampPalette(c("#FDE725", "#440154")))(9), "lightgrey")
+names(typel) <- c(tmp.colors[9], tmp.colors[1:8], tmp.colors[10])
+
+lang <- 'FR'
+dd %<>% mutate(color = names(typel)[match(as.character(type), typel)])
+
+#ddd <- dd %>% filter(country == "Allemagne", type != "Sans indication") 
+
+plotSingleColumnChart <- function(dd, country.sub, txt, teaserifiy = F) {
+  ddd <- dd %>% filter(country == country.sub, type != "Sans indication") %>% arrange(type)  
+  
+  # Get translation
+  typelt <- c(txt["typel.1", lang], txt["typel.2", lang], txt["typel.3", lang], txt["typel.4", lang], 
+                   txt["typel.5", lang], txt["typel.6", lang], txt["typel.7", lang], txt["typel.8", lang], txt["typel.9", lang])
+  ddd %<>% mutate(typet = factor(type, labels = typelt[c(2:9, 1)], ordered = T))
+  
+  ddd$tp <- paste0(
+    '<table class="table">',
+    '<tr><td colspan="2"><b>', round(ddd$pc, 1), '%</b> ', 
+    ifelse(ddd$type == "né en Suisse", "", txt['tp.resident', lang]), " ", ddd$typet, '</td>',
+    '<tr><td colspan="2">(<b>', round(ddd$value / 1000, 1), "</b>/", round(ddd$tot / 1000, 1), " ", txt['tp.thousand', lang], 
+    ')</td><td></td></tr>',
+    '</table>')
+  
+  hc <- hchart(
+    ddd, "column", hcaes(x = typet, y = pc, value = value, tp = tp)
+  ) %>%
+    hc_add_theme(hc_theme_swi) %>%
+    hc_chart(
+      backgroundColor = bg.colour, height = chart.height, 
+      spacing = list(0,4,3,3), borderRadius = 4,
+      borderColor = "white", borderWidth = 1
+    ) %>%
+    hc_xAxis(
+      useHTML =T, lineColor = "transparent", tickLength = 7,
+      labels = list(autoRotation = list(0, -45), padding = 1, style = list(fontSize = "0.75em"), enabled = ifelse(teaserifiy == T, F, T)), 
+      gridLineWidth = 0,  title = "", reversed = ifelse(lang == "AR", T, F)
+    ) %>%
+    hc_yAxis(
+      useHTML = T, labels = list(format = '{value}%', style = list(fontSize = "0.8em")),
+      gridLineWidth = 1, ceiling = y.max, tickInterval = 25,
+      minPadding = 0, maxPadding = 0, max = y.max,
+      title = "", opposite = ifelse(lang == "AR", T, F)
+    ) %>% 
+    hc_plotOptions(column = list(colorByPoint = T, colors = names(typel)[match(levels(dd$type), typel)], 
+                                 borderRadius = 2, borderColor = bg.colour, borderWidth = 2,
+                                 pointPadding = 0.01, groupPadding = 0.01)
+    )
+  
+  if(teaserifiy) {
+    hc
+  } else {
+  hc %>% hc_title(
+      floating = T, useHTML = T, text = txt[as.character(country.sub), lang], x = 5, y = 21,
+      style = list("fontSize" = "1.15em", "color" = '#22282a')
+    ) %>% hc_tooltip(
+    hideDelay = 10, formatter = JS("function() { return this.point.tp; }"), 
+    useHTML = T, borderWidth = 1, 
+    backgroundColor = 'rgba(255,255,255,1)', style = list(padding = 3, fontSize = "0.7em"))    
+  }
+}
+#plotSingleColumnChart(dd, "Italie")
+
+
+for (lang in colnames(txt)) {
+  cat("\n", lang)
+  plots <- lapply(country.sub, function(nat) plotSingleColumnChart(dd, nat, txt))
+  source <- paste0(
+    txt['source', lang], ": ", txt['source.name', lang], " | ",
+    txt['code', lang], ": ", htmlLink("highcharter", txt['code.name', lang]),
+    " | swissinfo.ch"
+  )
+  
+  save_html(
+    tags$html(
+      tags$head(includeHTML(style_swi_highcharter())),
+      tags$h2(HTML(txt['main.title', lang])),
+      div(class = "descr", HTML(paste0('<img src="https://interactive.swissinfo.ch/assets/Interactive_icon.svg.png" width="12" align="top">&nbsp; ', txt['descr', lang]))),
+      #tags$h3(HTML(txt['h3', lang])),
+      div(class = "graphic", hw_grid(plots, ncol = 3, rowheight = chart.height)),
+      div(id = "cite", HTML(source)),
+      # div(class = "footer", HTML(txt['footer', lang])),
+      HTML(iframeresizer)  
+    ), #background = chart.area.bg, 
+    file =  paste0("residencyDuration_", lang, ".html"), libdir = "js")
+}
+
+if(teaserifiy) {
+  lang <- 'FR'
+  plots <- lapply(country.sub, function(nat) plotSingleColumnChart(dd, nat, txt, T))
+  
+  save_html(
+    tags$html(
+      tags$head(includeHTML(style_swi_highcharter())),
+      #tags$h2(HTML(txt['main.title', lang])),
+     # div(class = "descr", HTML(paste0('<img src="https://interactive.swissinfo.ch/assets/Interactive_icon.svg.png" width="12" align="top">&nbsp; ', txt['descr', lang]))),
+      #tags$h3(HTML(txt['h3', lang])),
+      div(class = "graphic", hw_grid(plots, ncol = 3, rowheight = chart.height)),
+     # div(id = "cite", HTML(source)),
+      # div(class = "footer", HTML(txt['footer', lang])),
+      HTML(iframeresizer)  
+    ), #background = chart.area.bg, 
+    file =  paste0("teaser.html"), libdir = "js")  
+}
+
+
+
+```
