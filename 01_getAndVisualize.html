@@ -151,9 +151,9 @@ $(document).ready(function () {
 <div id="httpswww.pxweb.bfs.admin.chselection.aspxpx_languagefrpx_dbpx-x-0103010000_204px_tableidpx-x-0103010000_2045cpx-x-0103010000_204.pxpx_typepx" class="section level5">
 <h5><a href="https://www.pxweb.bfs.admin.ch/Selection.aspx?px_language=fr&amp;px_db=px-x-0103010000_204&amp;px_tableid=px-x-0103010000_204%5Cpx-x-0103010000_204.px&amp;px_type=PX">https://www.pxweb.bfs.admin.ch/Selection.aspx?px_language=fr&amp;px_db=px-x-0103010000_204&amp;px_tableid=px-x-0103010000_204%5Cpx-x-0103010000_204.px&amp;px_type=PX</a></h5>
 <pre class="r"><code>txt &lt;- loadTranslation(translation.file)</code></pre>
-<pre><code>## Warning in loadTranslation(translation.file): DE IT  PT  AR  RU  ES  JA  ZH languages will be discarded!</code></pre>
+<pre><code>## Warning in loadTranslation(translation.file): DE IT  AR  RU  ES  JA  ZH languages will be discarded!</code></pre>
 <pre><code>## 
-##  Remaining column names:  EN FR</code></pre>
+##  Remaining column names:  EN FR PT</code></pre>
 <pre class="r"><code>data.read &lt;- read_csv(data.file)</code></pre>
 <pre><code>## Warning: Missing column names filled in: 'X1' [1]</code></pre>
 <pre><code>## Parsed with column specification:
@@ -363,12 +363,14 @@ plotSingleColumnChart &lt;- function(dd, country.sub, txt, teaserifiy = F) {
     hc_add_theme(hc_theme_swi) %&gt;%
     hc_chart(
       backgroundColor = bg.colour, height = chart.height, 
-      spacing = list(0,4,3,3), borderRadius = 4,
+      spacing = list(0,4,4,3), borderRadius = 4,
       borderColor = &quot;white&quot;, borderWidth = 1
     ) %&gt;%
     hc_xAxis(
       useHTML =T, lineColor = &quot;transparent&quot;, tickLength = 7,
-      labels = list(autoRotation = list(0, -45), padding = 1, style = list(fontSize = &quot;0.75em&quot;), enabled = ifelse(teaserifiy == T, F, T)), 
+      labels = list(autoRotation = list(0, -55), #staggerLines = 2,
+                    padding = 1, style = list(fontSize = &quot;0.7em&quot;), 
+                    enabled = ifelse(teaserifiy == T, F, T)), 
       gridLineWidth = 0,  title = &quot;&quot;, reversed = ifelse(lang == &quot;AR&quot;, T, F)
     ) %&gt;%
     hc_yAxis(
@@ -421,7 +423,8 @@ for (lang in colnames(txt)) {
 }</code></pre>
 <pre><code>## 
 ##  EN
-##  FR</code></pre>
+##  FR
+##  PT</code></pre>
 <pre class="r"><code>if(teaserifiy) {
   lang &lt;- 'FR'
   plots &lt;- lapply(country.sub, function(nat) plotSingleColumnChart(dd, nat, txt, T))
