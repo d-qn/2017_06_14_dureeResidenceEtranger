@@ -363,13 +363,13 @@ plotSingleColumnChart &lt;- function(dd, country.sub, txt, teaserifiy = F) {
     hc_add_theme(hc_theme_swi) %&gt;%
     hc_chart(
       backgroundColor = bg.colour, height = chart.height, 
-      spacing = list(0,4,4,3), borderRadius = 4,
+      spacing = list(0,4,15,3), borderRadius = 4,
       borderColor = &quot;white&quot;, borderWidth = 1
     ) %&gt;%
     hc_xAxis(
       useHTML =T, lineColor = &quot;transparent&quot;, tickLength = 7,
-      labels = list(autoRotation = list(0, -55), #staggerLines = 2,
-                    padding = 1, style = list(fontSize = &quot;0.7em&quot;), 
+      labels = list(autoRotation = list(0), 
+                    padding = 1, style = list(fontSize = &quot;0.7em&quot;, textOverflow = 'none'), 
                     enabled = ifelse(teaserifiy == T, F, T)), 
       gridLineWidth = 0,  title = &quot;&quot;, reversed = ifelse(lang == &quot;AR&quot;, T, F)
     ) %&gt;%

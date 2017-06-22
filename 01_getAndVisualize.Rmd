@@ -192,13 +192,13 @@ plotSingleColumnChart <- function(dd, country.sub, txt, teaserifiy = F) {
     hc_add_theme(hc_theme_swi) %>%
     hc_chart(
       backgroundColor = bg.colour, height = chart.height, 
-      spacing = list(0,4,4,3), borderRadius = 4,
+      spacing = list(0,4,15,3), borderRadius = 4,
       borderColor = "white", borderWidth = 1
     ) %>%
     hc_xAxis(
       useHTML =T, lineColor = "transparent", tickLength = 7,
-      labels = list(autoRotation = list(0, -55), #staggerLines = 2,
-                    padding = 1, style = list(fontSize = "0.7em"), 
+      labels = list(autoRotation = list(0), 
+                    padding = 1, style = list(fontSize = "0.7em", textOverflow = 'none'), 
                     enabled = ifelse(teaserifiy == T, F, T)), 
       gridLineWidth = 0,  title = "", reversed = ifelse(lang == "AR", T, F)
     ) %>%
