@@ -152,8 +152,8 @@ plotSingleColumnChart <- function(dd, country.sub, txt, teaserifiy = F) {
       borderColor = "white", borderWidth = 1
     ) %>%
     hc_xAxis(
-      useHTML =T, lineColor = "transparent", tickLength = 7,
-      labels = list(autoRotation = list(0), 
+      useHTML = T, lineColor = "transparent", tickLength = 7,
+      labels = list(autoRotation = list(0), useHTML = T,
                     padding = 1, style = list(fontSize = "0.7em", textOverflow = 'none'), 
                     enabled = ifelse(teaserifiy == T, F, T)), 
       gridLineWidth = 0,  title = "", reversed = ifelse(lang == "AR", T, F)
